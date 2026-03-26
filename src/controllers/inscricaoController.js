@@ -1,19 +1,21 @@
 const InscricaoModel = require("../models/inscricaoModel");
+const { NotFoundError, ValidationError } = require("../errors/AppError");
+
 // POST /inscricoes — criar uma inscrição
 function store(req, res) {
     const { eventoId, participanteId } = req.body;
-    if (!eventoId || !participanteId) {
-        return res
-            .status(400)
-            .json({ erro: "eventoId e participanteId são obrigatórios" });
-    }
+    if (!evento) throw new NotFoundError("Evento");
+    if (jaInscrito)
+        throw new ValidationError("Participante já inscrito neste evento");
     const resultado = InscricaoModel.criar(
         parseInt(eventoId),
         parseInt(participanteId),
     );
     // Se o resultado tem a propriedade "erro", algo deu errado
     if (resultado.erro) {
-        return res.status(400).json(resultado);
+        if (resultado.erro === "Evento não encontrado") {
+            if (!evento) throw new NotFoundError("Evento");
+        }
     }
     res.status(201).json(resultado);
 }
@@ -37,8 +39,11 @@ function cancelar(req, res) {
     const inscricao = InscricaoModel.cancelar(id);
 
     // Se retornar null, responda 404
-    if (!inscricao) {
-        return res.status(404).json({ erro: "Inscrição não encontrada" });
+    if (!inscricao) throw new NotFoundError("Inscrição não encontrada");
+    if (inscricao.erro) {
+        if (inscricao.erro === "Inscrição já cancelada") {
+            throw new ValidationError("Inscrição já cancelada");
+        }
     }
 
     // Se retornar a inscrição, responda com ela
