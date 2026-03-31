@@ -1,23 +1,29 @@
 const InscricaoModel = require("../models/inscricaoModel");
 const { NotFoundError, ValidationError } = require("../errors/AppError");
+const { isRequired, validar } = require("../helpers/validator");
 
 // POST /inscricoes — criar uma inscrição
-function store(req, res) {
-    const { eventoId, participanteId } = req.body;
-    if (!evento) throw new NotFoundError("Evento");
-    if (jaInscrito)
-        throw new ValidationError("Participante já inscrito neste evento");
-    const resultado = InscricaoModel.criar(
-        parseInt(eventoId),
-        parseInt(participanteId),
-    );
-    // Se o resultado tem a propriedade "erro", algo deu errado
-    if (resultado.erro) {
-        if (resultado.erro === "Evento não encontrado") {
-            if (!evento) throw new NotFoundError("Evento");
+function store(req, res, next) {
+    try {
+        const { eventoId, participanteId } = req.body;
+        const erros = validar([
+            // eventoId é obrigatório
+            isRequired(eventoId, "Evento ID"),
+
+            // participanteId é obrigatório
+            isRequired(participanteId, "Participante ID"),
+        ]);
+        if (erros) {
+            throw new ValidationError(erros.join("; "));
         }
+        const resultado = InscricaoModel.criar(
+            parseInt(eventoId),
+            parseInt(participanteId),
+        );
+        res.status(201).json(resultado);
+    } catch (erro) {
+        next(erro);
     }
-    res.status(201).json(resultado);
 }
 // GET /inscricoes — listar todas
 function index(req, res) {

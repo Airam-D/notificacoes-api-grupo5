@@ -22,17 +22,15 @@ function buscarPorId(id) {
 }
 function criar(dados) {
     const novoParticipante = {
-
         id: proximoId,
-        // Complete com os atributos necessários
-        nome: "Ana Silva",
-        email: "ana@email.com"
+        // Pegando os dados dinâmicos em vez do texto fixo:
+        nome: dados.nome,
+        email: dados.email
     };
 
     proximoId++;
     participantes.push(novoParticipante);
     return novoParticipante;
-
 }
 function atualizar(id, dados) {
 

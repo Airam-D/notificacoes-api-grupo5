@@ -1,5 +1,6 @@
 const ParticipanteModel = require("../models/ParticipanteModel");
 const { NotFoundError, ValidationError } = require("../errors/AppError");
+const { isRequired, minLength, isEmail, validar, isPositiveInteger } = require("../helpers/validator");
 
 function index(req, res, next) {
     try {
@@ -17,7 +18,7 @@ function show(req, res, next) {
 
         // Se não encontrar, retorne 404 com mensagem de erro
         if (!participante) {
-            throw  new NotFoundError("Participante não encontrado");
+            throw new NotFoundError("Participante não encontrado");
         }
 
         // Se encontrar, retorne o participante
@@ -29,22 +30,37 @@ function show(req, res, next) {
 function store(req, res, next) {
     try {
         const { nome, email } = req.body;
-        // Valide: nome e email são obrigatórios
-        if (!nome || !email) {
-            throw new ValidationError("Nome e email são obrigatórios");
+        const erros = validar([
+            // Nome é obrigatório e deve ter pelo menos 2 caracteres
+            isRequired(nome, "Nome"),
+            minLength(nome, 2, "Nome"),
+            // Email é obrigatório e deve ser um e-mail válido
+            isRequired(email, "Email"),
+            isEmail(email, "Email"),
+
+        ]);
+        if (erros) {
+            throw new ValidationError(erros.join("; "));
         }
-        // Crie o participante e retorne com status 201
         const novoParticipante = ParticipanteModel.criar({ nome, email });
-        return res.status(201).json(novoParticipante);
-    } catch (err) {
-        next(err);
+        res.status(201).json(novoParticipante);
+    } catch (erro) {
+        next(erro);
     }
 }
 function update(req, res, next) {
     try {
         const id = parseInt(req.params.id);
-        // Atualize o participante
+        const { nome, capacidade } = req.body
+
+        const erros = validar([
+            minLength(nome, 3, "Nome"),
+            isPositiveInteger(capacidade, "Capacidade"),
+        ]);
+
+        // Atualizar o participante
         const participante = ParticipanteModel.atualizar(id, req.body);
+
         // Se não encontrar, retorne 404
         if (!participante) {
             throw new NotFoundError("Participante não encontrado");
