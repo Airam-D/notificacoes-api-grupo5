@@ -25,9 +25,9 @@ Desenvolver uma API REST que gerencie o envio de notificações por e-mail
 ## 5. Equipe
 | Nome | Função/Responsabilidade |
 |------|------------------------|
-| [Membro 1] | [ex: Líder técnico, responsável pelo banco] |
-| [Membro 2] | [ex: Responsável pela documentação] |
-| [Membro 3] | [ex: Responsável pelos testes] |
+| [Airam] | [Líder do grupo, responsável pelos testes e pelos controllers/routes] |
+| [João] | [Responsável pelo deploy e Models/Migrations] |
+| [Wesley] | [Responsável pela documentação e ploservice] |
 
 ## 6. Tecnologias
 Node.js, Express.js, MySQL, Sequelize, Swagger, Nodemailer, Git/GitHub
