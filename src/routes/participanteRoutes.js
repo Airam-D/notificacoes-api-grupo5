@@ -6,31 +6,6 @@ const ParticipanteController = require("../controllers/ParticipanteController");
 
 /**
  * @swagger
- * components:
- *   schemas:
- *     Participante:
- *       type: object
- *       required:
- *       - nome
- *       - email
- *       properties:
- *         id:
- *           type: integer
- *           description: ID gerado automaticamente
- *         nome:
- *           type: string
- *           description: Nome do participante
- *         email:
- *           type: string
- *           description: E-mail do participante
- *       example:
- *         id: 1
- *         nome: Ana Silva
- *         email: ana@email.com
- */
-
-/**
- * @swagger
  * /participantes:
  *   get:
  *     summary: Listar todos os participantes

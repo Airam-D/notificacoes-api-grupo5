@@ -19,7 +19,9 @@ function criar(eventoId, participanteId) {
     const jaInscrito = inscricoes.find(
         (i) => i.eventoId === eventoId && i.participanteId === participanteId,
     );
-    if (jaInscrito) return { erro: "Participante já inscrito neste evento" };
+    if (jaInscrito) {
+        throw new ValidationError("Participante já inscrito neste evento");
+    }
     const novaInscricao = {
         id: proximoId,
         eventoId,

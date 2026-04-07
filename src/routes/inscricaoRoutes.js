@@ -4,40 +4,6 @@ const InscricaoController = require("../controllers/inscricaoController");
 
 /**
  * @swagger
- * components:
- *   schemas:
- *     Inscricao:
- *       type: object
- *       required:
- *       - eventoId
- *       - participanteId
- *       properties:
- *         id:
- *           type: integer
- *           description: ID gerado automaticamente
- *         eventoId:
- *           type: integer
- *           description: ID do evento
- *         participanteId:
- *           type: integer
- *           description: ID do participante
- *         dataInscricao:
- *           type: string
- *           description: Data da inscrição
- *         status:
- *           type: string
- *           enum: [confirmada, cancelada]
- *           description: Status da inscrição
- *       example:
- *         id: 1
- *         eventoId: 1
- *         participanteId: 1
- *         dataInscricao: "2025-08-01T10:30:00.000Z"
- *         status: confirmada
- */
-
-/**
- * @swagger
  * /inscricoes:
  *   post:
  *     summary: Criar uma nova inscrição

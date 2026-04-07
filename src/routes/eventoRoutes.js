@@ -1,42 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const EventoController = require("../controllers/EventoController");
-/**
- * @swagger
- * components:
- *   schemas:
- *     Evento:
- *       type: object
- *       required:
- *       - nome
- *       - data
- *       properties:
- *         id:
- *           type: integer
- *           description: ID gerado automaticamente
- *         nome:
- *           type: string
- *           description: Nome do evento
- *         descricao:
- *           type: string
- *           description: Descrição do evento
- *         data:
- *           type: string
- *           description: Data do evento
- *         local:
- *           type: string
- *           description: Local do evento
- *         capacidade:
- *           type: integer
- *           description: Capacidade máxima
- *       example:
- *         id: 1
- *         nome: Workshop de Node.js
- *         descricao: Aprenda Node.js do zero
- *         data: "2025-08-15"
- *         local: SENAI - Sala 3
- *         capacidade: 30
- */
 
 /**
  * @swagger

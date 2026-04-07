@@ -23,11 +23,11 @@ Desenvolver uma API REST que gerencie o envio de notificações por e-mail
 - Envio de SMS ou push notifications
 
 ## 5. Equipe
-| Nome | Função/Responsabilidade |
-|------|------------------------|
-| [Airam] | [Líder do grupo, responsável pelos testes e pelos controllers/routes] |
-| [João] | [Responsável pelo deploy e Models/Migrations] |
-| [Wesley] | [Responsável pela documentação e ploservice] |
+| Nome     | Função/Responsabilidade                                               |
+| -------- | --------------------------------------------------------------------- |
+| [Airam]  | [Líder do grupo, responsável pelos testes e pelos controllers/routes] |
+| [João]   | [Responsável pelo deploy e Models/Migrations]                         |
+| [Wesley] | [Responsável pela documentação e ploservice]                          |
 
 ## 6. Tecnologias
 Node.js, Express.js, MySQL, Sequelize, Swagger, Nodemailer, Git/GitHub
@@ -43,14 +43,3 @@ Início: [data] | Entrega final: [data da apresentação]
 
 - [ ] Deploy realizado
 - [ ] Apresentação aprovada
-
-## Matriz de Responsabilidades (RACI)
-| Atividade | Airam | João | Wesley | 
-|---|---|---|---|
-| Models/Migrations | João R | Wesley C | Airam I |
-| Controllers/Routes | Wesley I | Airam R | João C |
-| Services | João C | Airam I | Wesley R |
-| Documentação | Wesley R | Airam I |  João C |
-| Testes Postman | João C | Airam R | Wesley I |
-| Deploy | Wesley I | Airam C | João R |
-**R** = Responsável | **A** = Aprovador | **C** = Consultado | **I** = Informado
