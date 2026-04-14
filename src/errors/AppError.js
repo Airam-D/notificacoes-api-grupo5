@@ -1,4 +1,4 @@
-class AppError extends Error {
+class AppError extends Error { //extends significa herança, ou seja recebe como herança
     constructor(mensagem, statusCode) {
         super(mensagem);
         this.statusCode = statusCode;

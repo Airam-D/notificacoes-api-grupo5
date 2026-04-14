@@ -15,7 +15,8 @@ function isRequired(valor, nomeCampo) {
 */
 function isEmail(valor) {
     if (!valor) return null; // Se não foi enviado, não valida (use isRequired para isso)
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; //O regex valida tipos de texto, ou seja, está validando se alguma coisa + @ + alguma outra coisa+ @. 
+    // E o principal é se o regex forinválido, ele retorna inválido
     if (!regex.test(valor)) {
         return "E-mail inválido";
     }
