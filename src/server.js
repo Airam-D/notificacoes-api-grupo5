@@ -1,24 +1,25 @@
 require("dotenv").config();
 
 const app = require("./app");
-const sequelize = require("./config/database");
+const { sequelize } = require("./models");
 
 const PORT = process.env.PORT || 3000;
 
 async function iniciar() {
     try {
-        // Testar conexão com o banco
         await sequelize.authenticate();
         console.log("Conexão com MySQL estabelecida com sucesso!");
 
-        // Iniciar o servidor
+        // Sincronizar Models com o banco (criar tabelas se não existirem)
+        await sequelize.sync({ alter: true });
+        console.log("Tabelas sincronizadas com o banco de dados.");
+
         app.listen(PORT, () => {
             console.log(`Servidor rodando em http://localhost:${PORT}`);
-            console.log(`Ambiente: ${process.env.NODE_ENV || "development"}`);
             console.log(`Documentação: http://localhost:${PORT}/api-docs`);
         });
     } catch (erro) {
-        console.error("Erro ao conectar com o banco de dados:", erro.message);
+        console.error("Erro ao iniciar:", erro.message);
         process.exit(1);
     }
 }
