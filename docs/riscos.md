@@ -5,4 +5,4 @@
 | 2 | Conflitos de merge no Git | Alta | Baixo | 🟡 | Fazer pull antes de trabalhar; branches s
 | 3 | MySQL não funcionar na máquina de alguém | Média | Médio | 🟠 | Testar config na semana 1
 | 4 | Tempo insuficiente para todas as features | Média | Alto | 🟠 | Priorizar features essenc
-| 5 | [Identifiquem mais riscos do grupo de vocês] | | | | |
+| 5 | Conflitos entre os integrantes do grupo | Média | Alto | 🟠 | Integrantes do grupo se entender e acabar com a discussão |

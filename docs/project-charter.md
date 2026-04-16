@@ -8,7 +8,8 @@ Desenvolver uma API REST que gerencie o envio de notificações por e-mail
 (confirmação de inscrição e lembretes) para participantes de eventos.
 
 ## 3. Justificativa
-[Por que este módulo é necessário? Que problema ele resolve?]
+Este projeto visa desenvolver uma API para automatizar notificações por e-mail em uma plataforma de eventos, melhorando a comunicação com participantes e facilitando a gestão de inscrições. Como parte da Situação de Aprendizagem do SENAI, contribui para o aprendizado prático em desenvolvimento back-end.
+
 
 ## 4. Escopo
 ### Incluído:
@@ -27,13 +28,13 @@ Desenvolver uma API REST que gerencie o envio de notificações por e-mail
 | -------- | --------------------------------------------------------------------- |
 | [Airam]  | [Líder do grupo, responsável pelos testes e pelos controllers/routes] |
 | [João]   | [Responsável pelo deploy e Models/Migrations]                         |
-| [Wesley] | [Responsável pela documentação e ploservice]                          |
+| [Wesley] | [Responsável pela documentação e pelo service]                          |
 
 ## 6. Tecnologias
 Node.js, Express.js, MySQL, Sequelize, Swagger, Nodemailer, Git/GitHub
 
 ## 7. Prazo
-Início: [data] | Entrega final: [data da apresentação]
+Início: 03/03/2026 | Entrega final: 23/06/2026
 
 ## 8. Critérios de Sucesso
 - [ ] API funcional com todos os CRUDs
