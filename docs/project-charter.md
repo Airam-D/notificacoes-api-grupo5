@@ -41,6 +41,5 @@ Início: 03/03/2026 | Entrega final: 23/06/2026
 - [ ] Dados persistidos em MySQL
 - [ ] Notificações por e-mail funcionando (simulado)
 - [ ] Documentação Swagger completa
-
 - [ ] Deploy realizado
 - [ ] Apresentação aprovada

@@ -1,4 +1,5 @@
 # Análise de Riscos
+
 | # | Risco | Probabilidade | Impacto | Nível | Ação de Mitigação |
 |---|-------|---------------|---------|-------|-------------------|
 | 1 | Membro do grupo faltar por muito tempo | Média | Alto | 🟠 | Documentar bem o código; rot
