@@ -32,13 +32,34 @@ async function criar(dados) {
     }
 }
 
-// Atualizar e Deletar vamos implementar na próxima aula
 async function atualizar(id, dados) {
-    // TODO: próxima aula
+    const evento = await Evento.findByPk(id);
+
+    if (!evento) {
+        throw new NotFoundError('Evento');
+    }
+
+    try {
+        await evento.update(dados);
+        return evento;
+    } catch (erro) {
+        if (erro.name === 'SequelizeValidationError') {
+            const mensagens = erro.errors.map(e => e.message).join('; ');
+            throw new ValidationError(mensagens);
+        }
+        throw erro;
+    }
 }
 
 async function deletar(id) {
-    // TODO: próxima aula
+    const evento = await Evento.findByPk(id);
+
+    if (!evento) {
+        throw new NotFoundError('Evento');
+    }
+
+    await evento.destroy();
+    return true;
 }
 
 module.exports = {
