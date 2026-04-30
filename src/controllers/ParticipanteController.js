@@ -1,48 +1,58 @@
 const ParticipanteService = require("../services/ParticipanteService");
 const parseId = require("../helpers/parseId");
 
-function index(req, res, next) {
+async function index(req, res, next) {
     try {
-        const todos = ParticipanteService.listarTodos();
+        const todos = await ParticipanteService.listarTodos();
         return res.json(todos);
     } catch (err) {
-        next(err); // Passa o erro para o middleware de tratamento
+        next(err);
     }
-};
-function show(req, res, next) {
+}
+
+async function show(req, res, next) {
     try {
         const id = parseId(req.params.id);
-        // Busque o participante por ID
-        const participante = ParticipanteService.buscarPorId(id);
-        // Se encontrar, retorne o participante
+
+        // Busca o participante por ID
+        const participante = await ParticipanteService.buscarPorId(id);
+
+        // Retorna o participante encontrado
         return res.json(participante);
     } catch (err) {
-        next(err); // Passa o erro para o middleware de tratamento
+        next(err);
     }
 }
-function store(req, res, next) {
+
+async function store(req, res, next) {
     try {
-        const novoParticipante = ParticipanteService.criar(req.body);
-        res.status(201).json(novoParticipante);
-    } catch (erro) {
-        next(erro);
-    }
-}
-function update(req, res, next) {
-    try {
-        const id = parseId(req.params.id);
-        const participanteAtualizado = ParticipanteService.atualizar(id, req.body);
-        res.json(participanteAtualizado);
+        const novoParticipante = await ParticipanteService.criar(req.body);
+
+        return res.status(201).json(novoParticipante);
     } catch (erro) {
         next(erro);
     }
 }
 
-function destroy(req, res, next) {
+async function update(req, res, next) {
     try {
         const id = parseId(req.params.id);
-        ParticipanteService.deletar(id);
-        res.status(204).send();
+
+        const participanteAtualizado = await ParticipanteService.atualizar(id, req.body);
+
+        return res.json(participanteAtualizado);
+    } catch (erro) {
+        next(erro);
+    }
+}
+
+async function destroy(req, res, next) {
+    try {
+        const id = parseId(req.params.id);
+
+        await ParticipanteService.deletar(id);
+
+        return res.status(204).send();
     } catch (erro) {
         next(erro);
     }
@@ -54,4 +64,4 @@ module.exports = {
     store,
     update,
     destroy
-}
+};
