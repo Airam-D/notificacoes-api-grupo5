@@ -2,8 +2,14 @@ const EventoService = require('../services/EventoService');
 
 async function index(req, res, next) {
     try {
-        const eventos = await EventoService.listarTodos();
-        res.json(eventos);
+        const resultado = await EventoService.listarTodos({
+            pagina: req.query.pagina,
+            porPagina: req.query.porPagina,
+            ordenarPor: req.query.ordenarPor,
+            ordem: req.query.ordem,
+            busca: req.query.busca,
+        });
+        res.json(resultado);
     } catch (erro) {
         next(erro);
     }

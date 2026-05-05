@@ -18,11 +18,13 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 const eventoRoutes = require("./routes/eventoRoutes");
 const participanteRoutes = require("./routes/participanteRoutes");
 const inscricaoRoutes = require("./routes/inscricaoRoutes");
+const exportRoutes = require('./routes/exportRoutes');
 
 // Uso de rotas com prefixos
 app.use("/eventos", eventoRoutes);
 app.use("/participantes", participanteRoutes);
 app.use("/inscricoes", inscricaoRoutes);
+app.use('/exportar', exportRoutes);
 
 // Rota raiz (informativa)
 app.get("/", (req, res) => {
@@ -34,6 +36,7 @@ app.get("/", (req, res) => {
             eventos: "/eventos",
             participantes: "/participantes",
             inscricoes: "/inscricoes",
+            exportar: "/exportar",
 
         },
     });
