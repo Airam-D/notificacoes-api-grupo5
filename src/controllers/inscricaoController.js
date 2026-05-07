@@ -1,9 +1,10 @@
 const InscricaoService = require('../services/InscricaoService');
+const cache = require('../config/cache');
 
 async function store(req, res, next) {
     try {
         const novaInscricao = await InscricaoService.criar(req.body);
-
+        cache.flushAll();
         return res.status(201).json(novaInscricao);
     } catch (erro) {
         return next(erro);
@@ -13,6 +14,7 @@ async function store(req, res, next) {
 async function index(req, res, next) {
     try {
         const inscricoes = await InscricaoService.listarTodas();
+        cache.flushAll();
 
         return res.json(inscricoes);
     } catch (erro) {
@@ -37,6 +39,7 @@ async function cancelar(req, res, next) {
         const { id } = req.params;
 
         const inscricaoCancelada = await InscricaoService.cancelar(id);
+        cache.flushAll();
 
         return res.json(inscricaoCancelada);
     } catch (erro) {

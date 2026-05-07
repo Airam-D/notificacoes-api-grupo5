@@ -27,6 +27,7 @@ async function show(req, res, next) {
 async function store(req, res, next) {
     try {
         const novoParticipante = await ParticipanteService.criar(req.body);
+        cache.flushAll();
 
         return res.status(201).json(novoParticipante);
     } catch (erro) {
@@ -39,6 +40,7 @@ async function update(req, res, next) {
         const id = parseId(req.params.id);
 
         const participanteAtualizado = await ParticipanteService.atualizar(id, req.body);
+        cache.flushAll();
 
         return res.json(participanteAtualizado);
     } catch (erro) {
@@ -51,6 +53,7 @@ async function destroy(req, res, next) {
         const id = parseId(req.params.id);
 
         await ParticipanteService.deletar(id);
+        cache.flushAll();
 
         return res.status(204).send();
     } catch (erro) {

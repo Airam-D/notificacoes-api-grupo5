@@ -3,7 +3,20 @@ const router = express.Router();
 const { Evento, Participante, Inscricao } = require('../models');
 const { create } = require('xmlbuilder2');
 
-// GET /exportar/eventos/xml — exportar eventos em XML
+/**
+ * @swagger
+ * /exportar/eventos/xml:
+ *   get:
+ *     summary: Exportar eventos em formato XML
+ *     tags: [Exportação]
+ *     responses:
+ *       200:
+ *         description: Lista de eventos em XML
+ *         content:
+ *           application/xml:
+ *             schema:
+ *               type: string
+ */
 router.get('/eventos/xml', async (req, res, next) => {
     try {
         const eventos = await Evento.findAll({ order: [['data', 'ASC']] });
@@ -31,7 +44,22 @@ router.get('/eventos/xml', async (req, res, next) => {
     }
 });
 
-// GET /exportar/eventos/json — exportar eventos em JSON (download)
+/**
+ * @swagger
+ * /exportar/eventos/json:
+ *   get:
+ *     summary: Exportar eventos em formato JSON (download)
+ *     tags: [Exportação]
+ *     responses:
+ *       200:
+ *         description: Lista de eventos em JSON para download
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Evento'
+ */
 router.get('/eventos/json', async (req, res, next) => {
     try {
         const eventos = await Evento.findAll({
@@ -47,7 +75,100 @@ router.get('/eventos/json', async (req, res, next) => {
     }
 });
 
-// GET /exportar/inscricoes/xml — exportar inscrições em XML
+/**
+ * @swagger
+ * /exportar/relatorio/inscricoes:
+ *   get:
+ *     summary: Gerar relatório de inscrições por evento
+ *     tags: [Exportação]
+ *     responses:
+ *       200:
+ *         description: Relatório detalhado de inscrições
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 geradoEm:
+ *                   type: string
+ *                   format: date-time
+ *                 totalEventos:
+ *                   type: integer
+ *                 relatorio:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       evento:
+ *                         type: string
+ *                       data:
+ *                         type: string
+ *                         format: date
+ *                       capacidade:
+ *                         type: integer
+ *                       totalInscritos:
+ *                         type: integer
+ *                       vagasRestantes:
+ *                         type: integer
+ *                       inscritos:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ */
+router.get('/relatorio/inscricoes', async (req, res, next) => {
+    try {
+        const eventos = await Evento.findAll({
+            include: [{
+                model: Inscricao,
+                as: 'inscricoes',
+                include: [{
+                    model: Participante,
+                    as: 'participante',
+                    attributes: ['nome', 'email'],
+                }],
+            }],
+            order: [['data', 'ASC']],
+        });
+
+        // Formatar o relatório
+        const relatorio = eventos.map(evento => ({
+            evento: evento.nome,
+            data: evento.data,
+            capacidade: evento.capacidade,
+            totalInscritos: evento.inscricoes.length,
+            vagasRestantes: (evento.capacidade || 0) - evento.inscricoes.length,
+            inscritos: evento.inscricoes.map(i => ({
+                nome: i.participante.nome,
+                email: i.participante.email,
+                status: i.status,
+                dataInscricao: i.dataInscricao,
+            })),
+        }));
+
+        res.json({
+            geradoEm: new Date().toISOString(),
+            totalEventos: relatorio.length,
+            relatorio,
+        });
+    } catch (erro) {
+        next(erro);
+    }
+});
+
+/**
+ * @swagger
+ * /exportar/inscricoes/xml:
+ *   get:
+ *     summary: Exportar inscrições em formato XML
+ *     tags: [Exportação]
+ *     responses:
+ *       200:
+ *         description: Lista de inscrições em XML
+ *         content:
+ *           application/xml:
+ *             schema:
+ *               type: string
+ */
 router.get('/inscricoes/xml', async (req, res, next) => {
     try {
         const inscricoes = await Inscricao.findAll({
@@ -94,47 +215,20 @@ router.get('/inscricoes/xml', async (req, res, next) => {
     }
 });
 
-// GET /exportar/relatorio/inscricoes — relatório de inscrições por evento
-router.get('/relatorio/inscricoes', async (req, res, next) => {
-    try {
-        const eventos = await Evento.findAll({
-            include: [{
-                model: Inscricao,
-                as: 'inscricoes',
-                include: [{
-                    model: Participante,
-                    as: 'participante',
-                    attributes: ['nome', 'email'],
-                }],
-            }],
-            order: [['data', 'ASC']],
-        });
-
-        // Formatar o relatório
-        const relatorio = eventos.map(evento => ({
-            evento: evento.nome,
-            data: evento.data,
-            capacidade: evento.capacidade,
-            totalInscritos: evento.inscricoes.length,
-            vagasRestantes: (evento.capacidade || 0) - evento.inscricoes.length,
-            inscritos: evento.inscricoes.map(i => ({
-                nome: i.participante.nome,
-                email: i.participante.email,
-                status: i.status,
-                dataInscricao: i.dataInscricao,
-            })),
-        }));
-
-        res.json({
-            geradoEm: new Date().toISOString(),
-            totalEventos: relatorio.length,
-            relatorio,
-        });
-    } catch (erro) {
-        next(erro);
-    }
-});
-
+/**
+ * @swagger
+ * /exportar/relatorio/inscricoes/csv:
+ *   get:
+ *     summary: Exportar relatório de inscrições em formato CSV
+ *     tags: [Exportação]
+ *     responses:
+ *       200:
+ *         description: Relatório de inscrições em CSV para download
+ *         content:
+ *           text/csv:
+ *             schema:
+ *               type: string
+ */
 router.get('/relatorio/inscricoes/csv', async (req, res, next) => {
     try {
         const inscricoes = await Inscricao.findAll({

@@ -44,6 +44,20 @@ const options = {
                         capacidade: {
                             type: "integer",
                             description: "Capacidade máxima"
+                        },
+                        banner: {
+                            type: "string",
+                            description: "URL do banner do evento"
+                        },
+                        createdAt: {
+                            type: "string",
+                            format: "date-time",
+                            description: "Data de criação"
+                        },
+                        updatedAt: {
+                            type: "string",
+                            format: "date-time",
+                            description: "Data da última atualização"
                         }
                     },
                     example: {
@@ -52,7 +66,10 @@ const options = {
                         descricao: "Aprenda Node.js do zero",
                         data: "2025-08-15",
                         local: "SENAI - Sala 3",
-                        capacidade: 30
+                        capacidade: 30,
+                        banner: "/uploads/banner-1.jpg",
+                        createdAt: "2025-05-07T10:30:00.000Z",
+                        updatedAt: "2025-05-07T10:30:00.000Z"
                     }
                 },
                 Participante: {
@@ -71,12 +88,24 @@ const options = {
                             type: "string",
                             format: "email",
                             description: "E-mail do participante"
+                        },
+                        createdAt: {
+                            type: "string",
+                            format: "date-time",
+                            description: "Data de criação"
+                        },
+                        updatedAt: {
+                            type: "string",
+                            format: "date-time",
+                            description: "Data da última atualização"
                         }
                     },
                     example: {
                         id: 1,
                         nome: "Ana Silva",
-                        email: "ana@email.com"
+                        email: "ana@email.com",
+                        createdAt: "2025-05-07T10:30:00.000Z",
+                        updatedAt: "2025-05-07T10:30:00.000Z"
                     }
                 },
                 Inscricao: {
@@ -104,6 +133,16 @@ const options = {
                             type: "string",
                             enum: ["confirmada", "cancelada"],
                             description: "Status da inscrição"
+                        },
+                        createdAt: {
+                            type: "string",
+                            format: "date-time",
+                            description: "Data de criação"
+                        },
+                        updatedAt: {
+                            type: "string",
+                            format: "date-time",
+                            description: "Data da última atualização"
                         }
                     },
                     example: {
@@ -111,7 +150,22 @@ const options = {
                         eventoId: 1,
                         participanteId: 1,
                         dataInscricao: "2025-08-01T10:30:00.000Z",
-                        status: "confirmada"
+                        status: "confirmada",
+                        createdAt: "2025-05-07T10:30:00.000Z",
+                        updatedAt: "2025-05-07T10:30:00.000Z"
+                    }
+                },
+                Error: {
+                    type: "object",
+                    properties: {
+                        message: {
+                            type: "string",
+                            description: "Mensagem de erro"
+                        },
+                        statusCode: {
+                            type: "integer",
+                            description: "Código de status HTTP"
+                        }
                     }
                 }
             }
