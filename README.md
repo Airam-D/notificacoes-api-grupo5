@@ -64,10 +64,24 @@ docs/                   # Documentação adicional
 
 ## 🔧 Scripts Disponíveis
 
-| Comando | Descrição |
-|---------|-----------|
-| `npm start` | Inicia o servidor em modo produção |
-| `npm run dev` | Inicia o servidor com Nodemon (desenvolvimento) |
+## 🔧 Scripts
+
+| Comando                   | Descrição                            |
+| ------------------------- | ------------------------------------ |
+| `npm start`               | Inicia o servidor (produção)         |
+| `npm run dev`             | Inicia com Nodemon (desenvolvimento) |
+| `npm run db:migrate`      | Executa migrations pendentes         |
+| `npm run db:migrate:undo` | Desfaz última migration              |
+| `npm run db:seed`         | Insere dados iniciais                |
+| `npm run db:reset`        | Recria banco completo                |
+
+## 🗄️ Banco de Dados
+
+- **SGBD:** MySQL
+- **ORM:** Sequelize
+- **Tabelas:** eventos, participantes, inscricoes, notificacoes
+
+## 📁 Estrutura do Projet
 
 ## 🚀 Como Rodar o Projeto
 
