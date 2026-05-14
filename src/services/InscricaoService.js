@@ -1,5 +1,6 @@
 const { Inscricao, Evento, Participante } = require('../models');
 const { NotFoundError, ValidationError } = require('../errors/AppError');
+const appEmitter = require('../events/eventEmitter');
 
 async function criar(dados) {
     const { eventoId, participanteId } = dados;
@@ -23,6 +24,14 @@ async function criar(dados) {
         evento_id: eventoId,
         participante_id: participanteId,
     });
+
+    // Log de debug
+    console.log('[DEBUG] Inscrição criada:', { id: novaInscricao.id, eventoId, participanteId });
+
+    // Emitir evento — os observers serão notificados
+    console.log('[DEBUG] Emitindo evento inscricao:criada');
+    appEmitter.emit('inscricao:criada', novaInscricao);
+    console.log('[DEBUG] Evento emitido');
 
     return novaInscricao;
 }
@@ -67,6 +76,9 @@ async function cancelar(id) {
 
     // Atualiza o status
     await inscricao.update({ status: "cancelada" });
+
+    // Emitir evento de cancelamento
+    appEmitter.emit('inscricao:cancelada', inscricao);
 
     return inscricao;
 }

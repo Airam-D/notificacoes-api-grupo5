@@ -1,5 +1,6 @@
 const { Evento } = require('../models');
 const { NotFoundError, ValidationError } = require('../errors/AppError');
+const appEmitter = require('../events/eventEmitter');
 
 async function listarTodos() {
     const eventos = await Evento.findAll({
@@ -21,6 +22,11 @@ async function buscarPorId(id) {
 async function criar(dados) {
     try {
         const novoEvento = await Evento.create(dados);
+        
+        // Emitir evento para observers
+        console.log('[DEBUG] Emitindo evento evento:criado');
+        appEmitter.emit('evento:criado', novoEvento);
+        
         return novoEvento;
     } catch (erro) {
         // O Sequelize lança SequelizeValidationError para validações do Model
@@ -41,6 +47,10 @@ async function atualizar(id, dados) {
 
     try {
         await evento.update(dados);
+        
+        // Emitir evento para observers
+        appEmitter.emit('evento:atualizado', evento);
+        
         return evento;
     } catch (erro) {
         if (erro.name === 'SequelizeValidationError') {
@@ -59,6 +69,10 @@ async function deletar(id) {
     }
 
     await evento.destroy();
+    
+    // Emitir evento para observers
+    appEmitter.emit('evento:deletado', id);
+    
     return true;
 }
 

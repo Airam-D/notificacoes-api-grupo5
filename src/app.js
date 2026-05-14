@@ -11,6 +11,10 @@ app.use(cors());
 const responseTime = require("./middlewares/responseTime");
 app.use(responseTime);
 
+// Registrar observers (basta importar para ativar)
+require('./events/notificacaoObserver');
+require('./events/logObserver');
+
 // DOCUMENTAÇÃO
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -19,6 +23,7 @@ const eventoRoutes = require("./routes/eventoRoutes");
 const participanteRoutes = require("./routes/participanteRoutes");
 const inscricaoRoutes = require("./routes/inscricaoRoutes");
 const exportRoutes = require('./routes/exportRoutes');
+const notificacaoRoutes = require('./routes/notificacaoRoutes');
 const path = require('path');
 
 // Uso de rotas com prefixos
@@ -26,6 +31,7 @@ app.use("/eventos", eventoRoutes);
 app.use("/participantes", participanteRoutes);
 app.use("/inscricoes", inscricaoRoutes);
 app.use('/exportar', exportRoutes);
+app.use('/notificacoes', notificacaoRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Rota raiz (informativa)
