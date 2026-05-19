@@ -1,5 +1,6 @@
 const { Participante } = require('../models');
-const { NotFoundError } = require('../errors/AppError');
+const { NotFoundError, ValidationError } = require('../errors/AppError');
+const appEmitter = require('../events/eventEmitter');
 
 async function listarTodos() {
     // Use Participante.findAll() com ordenação por nome
@@ -21,15 +22,20 @@ async function buscarPorId(id) {
 async function criar(dados) {
     // Use Participante.create(dados) com try/catch para erros do Sequelize
     try {
-        return await Participante.create(dados);
+        const novoParticipante = await Participante.create(dados);
+        
+        // Emitir evento para observers
+        console.log('[DEBUG] Emitindo evento participante:criado');
+        appEmitter.emit('participante:criado', novoParticipante);
+        
+        return novoParticipante;
     } catch (error) {
         // Re-lance o erro para ser tratado no controller
         throw error;
     }
 }
 
-// Atualizar e deletar ficam para a próxima aula
-async function atualizar(id, dados) { /* TODO */ }
-async function deletar(id) { /* TODO */ }
+async function atualizar(id, dados) {}
+async function deletar(id) {}
 
 module.exports = { listarTodos, buscarPorId, criar, atualizar, deletar };

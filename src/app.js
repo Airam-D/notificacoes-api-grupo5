@@ -14,6 +14,7 @@ app.use(responseTime);
 // Registrar observers (basta importar para ativar)
 require('./events/notificacaoObserver');
 require('./events/logObserver');
+require('./events/boasVindasObserver');
 
 // DOCUMENTAÇÃO
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -32,6 +33,7 @@ app.use("/participantes", participanteRoutes);
 app.use("/inscricoes", inscricaoRoutes);
 app.use('/exportar', exportRoutes);
 app.use('/notificacoes', notificacaoRoutes);
+app.use('/notificacoes/teste-email', notificacaoRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Rota raiz (informativa)
@@ -46,6 +48,8 @@ app.get("/", (req, res) => {
             inscricoes: "/inscricoes",
             exportar: "/exportar",
             uploads: "/uploads",
+            notificacoes: "/notificacoes",
+            teste_email: "/notificacoes/teste-email"
 
         },
     });

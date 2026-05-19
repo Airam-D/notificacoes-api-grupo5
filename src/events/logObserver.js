@@ -88,6 +88,16 @@ appEmitter.on('erro:geral', (erro) => {
     registrarLog(`❌ ERRO: ${erro.message}`);
 });
 
+// Observer: registra envio de e-mail de boas-vindas
+appEmitter.on('email:boas-vindas-enviado', (dados) => {
+    registrarLog(`💌 E-mail de boas-vindas enviado para ${dados.email} (participante #${dados.participanteId})`);
+});
+
+// Observer: registra erros de e-mail
+appEmitter.on('email:erro', (dados) => {
+    registrarLog(`❌ Erro ao enviar e-mail de ${dados.tipo} (participante #${dados.participanteId}): ${dados.erro}`);
+});
+
 console.log('[LOG] Observer de logs registrado - Logs serão salvos em logs/app.log');
 
 module.exports = { registrarLog };
