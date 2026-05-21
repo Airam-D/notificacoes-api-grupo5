@@ -1,4 +1,4 @@
-# Aula 22 — Nodemailer: Enviando E-mails com Ethereal
+# Aula 22 — Nodemailer: Enviando E-mails com MailPit
 
 > **Bloco 4** · Quinta-feira · Semana 11 · 3 aulas (135 min)
 
@@ -6,27 +6,42 @@
 
 ## 🎯 Objetivo da Aula
 
-Hoje vamos fazer algo que impressiona: **enviar e-mails de verdade** (simulados) a partir da nossa API! Vamos usar o **Nodemailer** com o **Ethereal** — um serviço que cria caixas de e-mail de teste automaticamente. Vocês vão ver o e-mail chegando num navegador!
+Hoje vamos fazer algo que impressiona: **enviar e-mails de verdade** (simulados) a partir da nossa API! Vamos usar o **Nodemailer** com o **MailPit** — um servidor de e-mail de teste que roda na rede da sala. Vocês vão ver o e-mail chegando num painel web!
 
 **O que você vai produzir hoje:**
 - [x] Instalar e configurar o Nodemailer
-- [x] Criar conta de teste no Ethereal automaticamente
+- [x] Conectar ao servidor MailPit da sala
 - [x] Criar o EmailService
 - [x] Enviar o primeiro e-mail e visualizar no navegador
 
 ---
 
-## 📧 O Que é o Nodemailer?
+## 📧 O Que É o Nodemailer?
 
 O **Nodemailer** é a biblioteca mais popular do Node.js para enviar e-mails. Ele funciona com qualquer servidor SMTP (Gmail, Outlook, SendGrid, etc.).
 
-Para desenvolvimento, vamos usar o **Ethereal** — um serviço criado pela própria equipe do Nodemailer que:
-- Cria uma conta de e-mail de teste **automaticamente** (sem cadastro!)
-- Captura os e-mails enviados (eles não chegam de verdade no destinatário)
-- Permite visualizar os e-mails num painel web
-- É **gratuito** e perfeito para aprender
+Para desenvolvimento, vamos usar o **MailPit** — um servidor SMTP de teste que o professor configurou no servidor da sala. Ele:
+- **Captura** todos os e-mails enviados (eles não chegam de verdade no destinatário)
+- Permite **visualizar** os e-mails numa interface web moderna
+- Roda na **rede local** — sem depender de internet
+- É **gratuito** e open-source
 
-> 💡 É como um "Mailtrap" embutido no Nodemailer — zero configuração.
+> 💡 No mercado, ambientes de desenvolvimento usam servidores SMTP internos exatamente assim. Vocês estão aprendendo a forma profissional de testar e-mails.
+
+---
+
+## 🖥️ O MailPit da Sala
+
+O professor configurou o MailPit no servidor Proxmox. Vocês têm acesso a:
+
+| Serviço                                 | Endereço                 | Porta  |
+| --------------------------------------- | ------------------------ | ------ |
+| **SMTP** (para onde o Nodemailer envia) | `MAILPIT_IP`             | `1025` |
+| **Web UI** (para visualizar os e-mails) | `http://MAILPIT_IP:8025` | `8025` |
+
+> 📌 O professor vai informar o IP real. Substitua `MAILPIT_IP` pelo IP fornecido.
+
+**Teste agora:** abra `http://MAILPIT_IP:8025` no navegador. Você deve ver a interface do MailPit com uma caixa de entrada (provavelmente vazia por enquanto).
 
 ---
 
@@ -47,33 +62,36 @@ Crie `src/services/EmailService.js`:
 const nodemailer = require('nodemailer');
 
 let transporter = null;
-let contaTeste = null;
+
+// Endereço do MailPit (configurado via .env)
+const SMTP_HOST = process.env.SMTP_HOST || 'MAILPIT_IP';
+const SMTP_PORT = process.env.SMTP_PORT || 1025;
+const MAILPIT_URL = `http://${SMTP_HOST}:8025`;
 
 /**
- * Inicializa o transporter com uma conta de teste do Ethereal.
+ * Inicializa o transporter conectando ao MailPit.
  * Chamado uma vez ao iniciar o servidor.
  */
 async function inicializar() {
-  // Criar conta de teste automaticamente
-  contaTeste = await nodemailer.createTestAccount();
-
-  console.log('═══════════════════════════════════════════');
-  console.log('📧 E-mail de teste configurado!');
-  console.log(`   Usuário: ${contaTeste.user}`);
-  console.log(`   Senha:   ${contaTeste.pass}`);
-  console.log(`   Painel:  https://ethereal.email/login`);
-  console.log('═══════════════════════════════════════════');
-
-  // Criar o transporter (o "carteiro" que envia os e-mails)
   transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
+    host: SMTP_HOST,
+    port: parseInt(SMTP_PORT),
     secure: false,
-    auth: {
-      user: contaTeste.user,
-      pass: contaTeste.pass,
-    },
+    tls: { rejectUnauthorized: false },
   });
+
+  // Testar a conexão com o MailPit
+  try {
+    await transporter.verify();
+    console.log('═══════════════════════════════════════════');
+    console.log('📧 Servidor de e-mail conectado!');
+    console.log(`   SMTP: ${SMTP_HOST}:${SMTP_PORT}`);
+    console.log(`   Painel: ${MAILPIT_URL}`);
+    console.log('═══════════════════════════════════════════');
+  } catch (erro) {
+    console.error('⚠️ Servidor de e-mail indisponível:', erro.message);
+    console.error('   Verifique se o MailPit está rodando e o IP está correto.');
+  }
 }
 
 /**
@@ -81,7 +99,7 @@ async function inicializar() {
  * @param {string} para - E-mail do destinatário
  * @param {string} assunto - Assunto do e-mail
  * @param {string} html - Conteúdo HTML do e-mail
- * @returns {object} Informações do envio, incluindo URL de preview
+ * @returns {object} Informações do envio
  */
 async function enviar(para, assunto, html) {
   if (!transporter) {
@@ -95,15 +113,12 @@ async function enviar(para, assunto, html) {
     html: html,
   });
 
-  // O Ethereal gera uma URL para visualizar o e-mail enviado!
-  const previewUrl = nodemailer.getTestMessageUrl(info);
-
-  console.log(`📧 E-mail enviado para ${para}`);
-  console.log(`   Preview: ${previewUrl}`);
+  console.log(`📧 E-mail enviado para ${para} (ID: ${info.messageId})`);
+  console.log(`   Visualizar em: ${MAILPIT_URL}`);
 
   return {
     messageId: info.messageId,
-    previewUrl: previewUrl,
+    visualizarEm: MAILPIT_URL,
   };
 }
 
@@ -112,6 +127,36 @@ module.exports = {
   enviar,
 };
 ```
+
+### Entendendo o código
+
+| Parte                         | O que faz                                   |
+| ----------------------------- | ------------------------------------------- |
+| `createTransport({...})`      | Cria o "carteiro" que vai enviar os e-mails |
+| `host` e `port`               | Endereço do MailPit na rede da sala         |
+| `secure: false`               | O MailPit usa conexão simples (sem SSL)     |
+| `transporter.verify()`        | Testa se a conexão com o MailPit funciona   |
+| `transporter.sendMail({...})` | Envia o e-mail (capturado pelo MailPit)     |
+
+### Configurar as variáveis de ambiente
+
+Adicione ao `.env`:
+
+```env
+# Servidor de e-mail (MailPit)
+SMTP_HOST=MAILPIT_IP
+SMTP_PORT=1025
+```
+
+E atualize o `.env.example`:
+
+```env
+# Servidor de e-mail (MailPit da sala)
+SMTP_HOST=MAILPIT_IP
+SMTP_PORT=1025
+```
+
+> 📌 Substitua `MAILPIT_IP` pelo IP real que o professor informou.
 
 ### Inicializar ao subir o servidor
 
@@ -153,10 +198,9 @@ Rode `npm run dev`. Você deve ver no terminal:
 
 ```
 ═══════════════════════════════════════════
-📧 E-mail de teste configurado!
-   Usuário: abc123@ethereal.email
-   Senha:   xyz789
-   Painel:  https://ethereal.email/login
+📧 Servidor de e-mail conectado!
+   SMTP: 192.168.x.200:1025
+   Painel: http://192.168.x.200:8025
 ═══════════════════════════════════════════
 ```
 
@@ -182,7 +226,7 @@ router.post('/teste-email', async (req, res, next) => {
 
     res.json({
       mensagem: 'E-mail de teste enviado!',
-      previewUrl: resultado.previewUrl,
+      visualizarEm: resultado.visualizarEm,
     });
   } catch (erro) {
     next(erro);
@@ -201,19 +245,21 @@ Resposta:
 ```json
 {
   "mensagem": "E-mail de teste enviado!",
-  "previewUrl": "https://ethereal.email/message/abc123..."
+  "visualizarEm": "http://192.168.x.200:8025"
 }
 ```
 
-**Abra o `previewUrl` no navegador** — você verá o e-mail renderizado, exatamente como o destinatário veria!
+**Agora abra `http://MAILPIT_IP:8025` no navegador** — o e-mail apareceu na caixa de entrada! Clique nele para ver o conteúdo renderizado.
 
-> ✅ Se você viu o e-mail no Ethereal, o Nodemailer está funcionando!
+> ✅ Se você viu o e-mail no MailPit, o Nodemailer está funcionando!
+
+> 💡 **Todos os grupos compartilham o mesmo MailPit** — vocês vão ver os e-mails de todos os grupos na mesma caixa. Isso é normal e divertido! No mercado, equipes compartilham ambientes de teste da mesma forma.
 
 ---
 
 ## 🔗 Parte 3 — Integrando com o Observer
 
-Agora vamos fazer o observer de notificações **enviar o e-mail de verdade** (via Ethereal). Atualize o `notificacaoObserver.js`:
+Agora vamos fazer o observer de notificações **enviar o e-mail de verdade** (via MailPit). Atualize o `notificacaoObserver.js`:
 
 ```javascript
 // src/events/notificacaoObserver.js
@@ -251,8 +297,8 @@ appEmitter.on('inscricao:criada', async (inscricao) => {
       <small>Este é um e-mail automático da Plataforma de Eventos.</small>
     `;
 
-    // Enviar o e-mail
-    const resultado = await EmailService.enviar(
+    // Enviar o e-mail via MailPit
+    await EmailService.enviar(
       participante.email,
       `Inscrição confirmada: ${evento.nome}`,
       html
@@ -269,9 +315,9 @@ appEmitter.on('inscricao:criada', async (inscricao) => {
       enviada: true,
     });
 
-    console.log(`[OBSERVER] E-mail enviado! Preview: ${resultado.previewUrl}`);
+    console.log(`[NOTIFICAÇÃO] Confirmação enviada para ${participante.email}`);
   } catch (erro) {
-    console.error('[OBSERVER] Erro ao enviar notificação:', erro.message);
+    console.error('[NOTIFICAÇÃO] Erro ao enviar:', erro.message);
   }
 });
 ```
@@ -279,11 +325,11 @@ appEmitter.on('inscricao:criada', async (inscricao) => {
 ### Teste completo
 
 1. `POST /inscricoes` com `{ "eventoId": 1, "participanteId": 1 }`
-2. No terminal, veja o log com a URL de preview
-3. Abra a URL no navegador — o e-mail de confirmação está lá!
+2. No terminal, veja o log de envio
+3. Abra `http://MAILPIT_IP:8025` — o e-mail de confirmação está lá!
 4. `GET /notificacoes` — a notificação aparece com `enviada: true`
 
-> 🎉 **Momento mágico!** Os alunos criam uma inscrição e veem o e-mail chegando em tempo real.
+> 🎉 **Momento mágico!** Os alunos criam uma inscrição e veem o e-mail chegando no MailPit em tempo real.
 
 ---
 
@@ -294,19 +340,21 @@ Crie um e-mail de **boas-vindas** que é enviado quando um novo participante se 
 1. Emita `participante:criado` no `ParticipanteService.criar()`
 2. Crie um observer que escuta esse evento
 3. Envie um e-mail simples: "Bem-vindo à Plataforma de Eventos, [nome]!"
+4. Confira no MailPit se chegou
 
 ---
 
 ## ✅ Checklist — Antes de Sair
 
-- [ ] Nodemailer instalado
-- [ ] EmailService criado com Ethereal (conta de teste automática)
-- [ ] Rota POST /notificacoes/teste-email funcionando
-- [ ] E-mail visualizado no painel do Ethereal
-- [ ] Observer atualizado para enviar e-mail real ao criar inscrição
-- [ ] Notificação salva no banco com `enviada: true`
-- [ ] Commit e push
+- [x] Nodemailer instalado
+- [x] EmailService criado e conectado ao MailPit
+- [x] Variáveis SMTP_HOST e SMTP_PORT no `.env`
+- [x] Rota POST /notificacoes/teste-email funcionando
+- [x] E-mail visualizado no painel do MailPit
+- [x] Observer atualizado para enviar e-mail real ao criar inscrição
+- [x] Notificação salva no banco com `enviada: true`
+- [x] Commit e push
 
 ---
 
-> **Próxima aula:** Templates de e-mail profissionais e envio de lembretes.
+> **Próxima aula:** Templates de e-mail profissionais e envio de notificações de cancelamento.

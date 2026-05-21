@@ -32,8 +32,8 @@ appEmitter.on('inscricao:criada', async (inscricao) => {
       <small>Este é um e-mail automático da Plataforma de Eventos.</small>
     `;
 
-        // Enviar o e-mail
-        const resultado = await EmailService.enviar(
+        // Enviar o e-mail via MailPit
+        await EmailService.enviar(
             participante.email,
             `Inscrição confirmada: ${evento.nome}`,
             html
@@ -50,8 +50,8 @@ appEmitter.on('inscricao:criada', async (inscricao) => {
             enviada: true,
         });
 
-        console.log(`[OBSERVER] E-mail enviado! Preview: ${resultado.previewUrl}`);
+        console.log(`[NOTIFICAÇÃO] Confirmação enviada para ${participante.email}`);
     } catch (erro) {
-        console.error('[OBSERVER] Erro ao enviar notificação:', erro.message);
+        console.error('[NOTIFICAÇÃO] Erro ao enviar:', erro.message);
     }
 });
