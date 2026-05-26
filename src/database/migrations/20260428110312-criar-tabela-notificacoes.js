@@ -16,7 +16,7 @@ module.exports = {
         onDelete: "CASCADE",
       },
       tipo: {
-        type: Sequelize.ENUM('confirmacao', 'lembrete'),
+        type: Sequelize.ENUM('confirmacao', 'lembrete', 'cancelamento', 'boas_vindas'),
         allowNull: false,
       },
       destinario_email: {
@@ -52,5 +52,9 @@ module.exports = {
         ),
       },
     });
+  },
+
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable("notificacoes");
   }
 }

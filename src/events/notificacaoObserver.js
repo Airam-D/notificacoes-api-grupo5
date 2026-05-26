@@ -51,20 +51,44 @@ appEmitter.on('inscricao:criada', async (inscricao) => {
 
         const resultado = await EmailService.enviar(participante.email, assunto, html);
 
-        await salvarNotificacao({
+        console.log(`✅ [EMAIL-CONFIRMACAO] E-mail enviado para ${participante.email}`);
+        console.log(`   MessageID: ${resultado.messageId}`);
+        console.log(`   Painel MailPit: ${resultado.visualizarEm}`);
+
+        // 📌 IMPORTANTE: Só salva notificação com enviada:true se o e-mail foi enviado com sucesso
+        const notificacao = await salvarNotificacao({
             inscricaoId: inscricao.id,
             tipo: 'confirmacao',
             destinatarioEmail: participante.email,
             assunto,
             conteudo: html,
             dataEnvio: new Date(),
-            enviada: true,
+            enviada: true, // ✅ Email foi bem-sucedido
         });
 
-        console.log(`[NOTIFICAÇÃO] Confirmação enviada para ${participante.email}`);
-        console.log(`   Visualizar em: ${resultado.previewUrl}`);
+        console.log(`✅ [NOTIFICAÇÃO-CONFIRMACAO] Registro criado com ID ${notificacao.id}`);
+
+        // Emite evento secundário para logObserver capturar
+        appEmitter.emit('notificacao:enviada', {
+            inscricaoId: inscricao.id,
+            tipo: 'confirmacao',
+            email: participante.email,
+            messageId: resultado.messageId,
+        });
     } catch (erro) {
-        console.error('[NOTIFICAÇÃO] Erro:', erro.message);
+        console.error(`❌ [OBSERVER-ERRO] Falha ao processar inscricao:criada #${inscricao.id}:`);
+        console.error(`   Tipo: ${erro.code || erro.name || 'UNKNOWN'}`);
+        console.error(`   Mensagem: ${erro.message}`);
+        console.error(`   Stack: ${erro.stack}`);
+
+        // Emite evento de erro para logObserver capturar
+        appEmitter.emit('notificacao:erro', {
+            inscricaoId: inscricao.id,
+            tipo: 'confirmacao',
+            email: participante.email,
+            erro: erro.message,
+            codigo: erro.code || 'UNKNOWN',
+        });
     }
 });
 
@@ -83,19 +107,43 @@ appEmitter.on('inscricao:cancelada', async (inscricao) => {
 
         const resultado = await EmailService.enviar(participante.email, assunto, html);
 
-        await salvarNotificacao({
+        console.log(`✅ [EMAIL-CANCELAMENTO] E-mail enviado para ${participante.email}`);
+        console.log(`   MessageID: ${resultado.messageId}`);
+        console.log(`   Painel MailPit: ${resultado.visualizarEm}`);
+
+        // 📌 IMPORTANTE: Só salva notificação com enviada:true se o e-mail foi enviado com sucesso
+        const notificacao = await salvarNotificacao({
             inscricaoId: inscricao.id,
             tipo: 'cancelamento',
             destinatarioEmail: participante.email,
             assunto,
             conteudo: html,
             dataEnvio: new Date(),
-            enviada: true,
+            enviada: true, // ✅ Email foi bem-sucedido
         });
 
-        console.log(`[NOTIFICAÇÃO] Cancelamento enviado para ${participante.email}`);
-        console.log(`   Visualizar em: ${resultado.previewUrl}`);
+        console.log(`✅ [NOTIFICAÇÃO-CANCELAMENTO] Registro criado com ID ${notificacao.id}`);
+
+        // Emite evento secundário para logObserver capturar
+        appEmitter.emit('notificacao:enviada', {
+            inscricaoId: inscricao.id,
+            tipo: 'cancelamento',
+            email: participante.email,
+            messageId: resultado.messageId,
+        });
     } catch (erro) {
-        console.error('[NOTIFICAÇÃO] Erro:', erro.message);
+        console.error(`❌ [OBSERVER-ERRO] Falha ao processar inscricao:cancelada #${inscricao.id}:`);
+        console.error(`   Tipo: ${erro.code || erro.name || 'UNKNOWN'}`);
+        console.error(`   Mensagem: ${erro.message}`);
+        console.error(`   Stack: ${erro.stack}`);
+
+        // Emite evento de erro para logObserver capturar
+        appEmitter.emit('notificacao:erro', {
+            inscricaoId: inscricao.id,
+            tipo: 'cancelamento',
+            email: participante.email,
+            erro: erro.message,
+            codigo: erro.code || 'UNKNOWN',
+        });
     }
 });

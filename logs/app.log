@@ -7,3 +7,10 @@
 [2026-05-26T10:45:52.300Z] ✓ Participante #21 criado: "Teste" (teste@example.com)
 [2026-05-26T10:45:52.433Z] 💌 E-mail de boas-vindas enviado para teste@example.com (participante #21)
 [2026-05-26T10:49:00.369Z] ✓ Inscrição #15 criada (evento: 11, participante: 21)
+[2026-05-26T13:05:02.369Z] ✓ Evento #13 criado: "Hackathon 2026" (Mon May 25 2026 21:00:00 GMT-0300 (Horário Padrão de Brasília))
+[2026-05-26T13:06:11.651Z] ✓ Participante #24 criado: "Airam" (airam.teste@gmail.com)
+[2026-05-26T13:06:11.749Z] 💌 E-mail de boas-vindas enviado para airam.teste@gmail.com (participante #24)
+[2026-05-26T13:06:16.543Z] ✓ Participante #25 criado: "Airam" (airamteste@gmail.com)
+[2026-05-26T13:06:16.637Z] 💌 E-mail de boas-vindas enviado para airamteste@gmail.com (participante #25)
+[2026-05-26T13:08:33.966Z] ✓ Inscrição #16 criada (evento: 10, participante: 24)
+[2026-05-26T13:12:35.334Z] ✗ Inscrição #6 cancelada

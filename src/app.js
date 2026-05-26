@@ -33,7 +33,6 @@ app.use("/participantes", participanteRoutes);
 app.use("/inscricoes", inscricaoRoutes);
 app.use('/exportar', exportRoutes);
 app.use('/notificacoes', notificacaoRoutes);
-app.use('/notificacoes/teste-email', notificacaoRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Rota raiz (informativa)

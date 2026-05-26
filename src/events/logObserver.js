@@ -69,13 +69,13 @@ appEmitter.on('notificacao:criada', (notificacao) => {
 });
 
 // Observer: registra quando uma notificação é enviada
-appEmitter.on('notificacao:enviada', (notificacao) => {
-    registrarLog(`📨 Notificação #${notificacao.id} enviada para ${notificacao.destinatarioEmail}`);
+appEmitter.on('notificacao:enviada', (dados) => {
+    registrarLog(`📨 Notificação enviada (tipo: ${dados.tipo}, inscricao: #${dados.inscricaoId}, para: ${dados.email}, messageId: ${dados.messageId})`);
 });
 
 // Observer: registra quando uma notificação falha
-appEmitter.on('notificacao:erro', (notificacao, erro) => {
-    registrarLog(`❌ Notificação #${notificacao.id} falhou: ${erro}`);
+appEmitter.on('notificacao:erro', (dados) => {
+    registrarLog(`❌ FALHA ao enviar notificação (tipo: ${dados.tipo}, inscricao: #${dados.inscricaoId}, para: ${dados.email}): ${dados.erro} [${dados.codigo}]`);
 });
 
 // Observer: registra quando um arquivo é exportado
