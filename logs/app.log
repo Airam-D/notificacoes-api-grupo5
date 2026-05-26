@@ -2,3 +2,8 @@
 [2026-05-21T15:27:04.990Z] ✓ Inscrição #14 criada (evento: 10, participante: 5)
 [2026-05-21T15:28:54.712Z] ✗ Inscrição #1 cancelada
 [2026-05-21T15:29:22.021Z] ✗ Inscrição #1 cancelada
+[2026-05-21T15:33:49.330Z] ✗ Inscrição #1 cancelada
+[2026-05-21T15:36:28.561Z] ✗ Inscrição #14 cancelada
+[2026-05-26T10:45:52.300Z] ✓ Participante #21 criado: "Teste" (teste@example.com)
+[2026-05-26T10:45:52.433Z] 💌 E-mail de boas-vindas enviado para teste@example.com (participante #21)
+[2026-05-26T10:49:00.369Z] ✓ Inscrição #15 criada (evento: 11, participante: 21)

@@ -14,180 +14,255 @@ O módulo é responsável por enviar notificações (confirmação de inscriçã
 - **Swagger (swagger-jsdoc + swagger-ui-express)** - Documentação interativa da API
 - **Dotenv** - Gerenciamento de variáveis de ambiente
 - **Nodemon** - Ferramenta para reinicialização automática durante desenvolvimento
-- **CORS** - Middleware para permitir requisições de diferentes origens
 
-## 📁 Estrutura do Projeto
+# 🔔 Notificações API — Apresentação Completa
 
-Abaixo está a organização dos diretórios e arquivos da nossa aplicação, separada por responsabilidades para facilitar a manutenção e escalabilidade:
+API REST desenvolvida como parte da Situação de Aprendizagem do curso de Programação Back-End (SENAI). O objetivo é gerenciar eventos, participantes e inscrições, além de enviar notificações por e-mail (confirmação, cancelamento, boas-vindas) usando um sistema baseado em eventos (EventEmitter) e observers.
+
+Conteúdo deste README: visão geral, arquitetura, como rodar, endpoints, fluxo de eventos, EmailService (Ethereal), logging, cache, exports, testes e roteiro de apresentação.
+
+---
+
+## Índice
+
+- Visão Geral
+- Funcionalidades Principais
+- Estrutura do Projeto
+- Arquitetura e Fluxos (Eventos / Observers)
+- EmailService (Ethereal) — Como funciona
+- Rotas e Endpoints (resumo para apresentação)
+- Banco de Dados / Modelos
+- Logging e Monitoramento
+- Cache
+- Exportações (JSON, XML, CSV)
+- Tests & Checklist de Apresentação
+- Como demonstrar o projeto (roteiro rápido)
+- Problemas conhecidos e próximos passos
+
+---
+
+## Visão Geral
+
+Esta API fornece:
+
+- CRUD para Eventos, Participantes e Inscrições
+- Observer pattern para lidar com efeitos colaterais (notificações, logs, emails)
+- EmailService com Ethereal (conta de teste automática) para preview de e-mails
+- Exportação de dados (XML / JSON / CSV)
+- Cache em endpoints de leitura para melhorar performance
+
+O servidor roda por padrão na porta `3000` e a documentação Swagger está disponível em `/api-docs`.
+
+---
+
+## Funcionalidades Principais (para apresentação)
+
+- Criar/Editar/Deletar eventos
+- Criar/Editar/Deletar participantes
+- Realizar inscrições em eventos
+- Cancelar inscrições (emite evento de cancelamento)
+- Notificações automáticas criadas ao inscrever-se
+- E-mails automáticos: boas-vindas, confirmação e cancelamento (Ethereal)
+- Logs centralizados em `logs/app.log`
+- Exportar relatórios em vários formatos
+
+---
+
+## Estrutura do Projeto
+
+Principais pastas e arquivos (resumo):
 
 ```
 src/
-├── app.js              # Configuração principal da aplicação Express
-├── server.js           # Ponto de entrada do servidor
-├── swagger.js          # Configuração da documentação Swagger
-├── controllers/        # Controladores da API (lógica de rotas)
-│   ├── EventoController.js
-│   ├── ParticipanteController.js
-│   └── inscricaoController.js
-├── services/           # Serviços (lógica de negócio)
-│   ├── EventoService.js
-│   ├── InscricaoService.js
-│   └── ParticipanteService.js
-├── models/             # Modelos de dados
-│   ├── EventoModel.js
-│   ├── inscricaoModel.js
-│   └── ParticipanteModel.js
-├── routes/             # Definição das rotas da API
-│   ├── eventoRoutes.js
-│   ├── inscricaoRoutes.js
-│   └── participanteRoutes.js
-├── middlewares/        # Middlewares personalizados
-│   ├── errorHandler.js
-│   ├── logger.js
-│   ├── notFound.js
-│   └── responseTime.js
-├── errors/             # Tratamento de erros
-│   └── AppError.js
-└── helpers/            # Funções auxiliares
-    ├── parseId.js
-    └── validator.js
+├── app.js                # Configura middlewares, rotas e observers
+├── server.js             # Inicializa DB e EmailService, inicia servidor
+├── swagger.js            # Configuração do Swagger
+├── controllers/          # Recebe requisições HTTP
+├── services/             # Lógica de negócio (emit events aqui)
+├── events/               # Observers (notificacao, log, boasVindas)
+├── models/               # Sequelize models
+├── routes/               # Definição de rotas (evento, participante, inscricao, notificacao)
+├── middlewares/          # Erros, responseTime, etc
+└── templates/            # Templates de e-mail (HTML)
 
-docs/                   # Documentação adicional
-├── custos.md
-├── funcoes.md
-├── infraestrutura.md
-├── postman-collection.json
-├── project-charter.md
-├── riscos.md
-└── wbs.md
+docs/                     # Documentação adicional (guias, custo, WBS...)
+logs/                     # logs/app.log
+uploads/                  # uploads de banners
 ```
 
-## 🔧 Scripts Disponíveis
+---
 
-## 🔧 Scripts
+## Arquitetura e Fluxos (Event-driven)
 
-| Comando                   | Descrição                            |
-| ------------------------- | ------------------------------------ |
-| `npm start`               | Inicia o servidor (produção)         |
-| `npm run dev`             | Inicia com Nodemon (desenvolvimento) |
-| `npm run db:migrate`      | Executa migrations pendentes         |
-| `npm run db:migrate:undo` | Desfaz última migration              |
-| `npm run db:seed`         | Insere dados iniciais                |
-| `npm run db:reset`        | Recria banco completo                |
+- Os serviços (ex.: `ParticipanteService`, `InscricaoService`) executam a lógica e emitem eventos via `appEmitter`.
+- Observers localizados em `src/events` escutam esses eventos e realizam ações assíncronas:
+   - `notificacaoObserver` → cria registros de notificação e envia e-mails de confirmação/cancelamento
+   - `boasVindasObserver` → envia e-mail de boas-vindas quando `participante:criado`
+   - `logObserver` → registra eventos importantes em `logs/app.log`
 
-## 🗄️ Banco de Dados
+Fluxo exemplo (inscrição):
 
-- **SGBD:** MySQL
-- **ORM:** Sequelize
-- **Tabelas:** eventos, participantes, inscricoes, notificacoes
+1. Cliente POST `/inscricoes` -> `InscricaoService.criar()`
+2. Serviço valida e cria inscrição no banco
+3. `appEmitter.emit('inscricao:criada', novaInscricao)`
+4. `notificacaoObserver` busca dados relacionados (evento, participante) e envia e-mail via `EmailService` e salva `Notificacao`
+5. `logObserver` registra o evento
 
-## 📁 Estrutura do Projet
+---
 
-## 🚀 Como Rodar o Projeto
+## EmailService (Ethereal) — Como funciona (resumo técnico)
 
-### Pré-requisitos
+- Implementado em `src/services/EmailService.js`.
+- Usa `nodemailer.createTestAccount()` para criar automaticamente uma conta de teste no Ethereal na inicialização.
+- `server.js` chama `await EmailService.inicializar()` antes de iniciar o servidor, garantindo que o `transporter` esteja pronto.
+- `EmailService.enviar(destinatario, assunto, html)` envia e retorna `{ messageId, previewUrl }` onde `previewUrl` permite visualizar o e-mail no navegador (https://ethereal.email).
 
-- Node.js (versão 14 ou superior)
-- npm (geralmente vem com Node.js)
+Observações para apresentação:
 
-### Passos para Execução
+- Ethereal não envia e-mails de verdade — é ideal para demonstrações. O previewUrl é o ponto chave a mostrar.
+- Para produção, basta trocar a configuração do `transporter` com credenciais SMTP reais.
 
-1. **Clone o repositório:**
+---
 
-   ```bash
-   git clone https://github.com/Airam-D/notificacoes-api-grupo5.git
-   cd notificacoes-api-grupo5
-   ```
+## Rotas e Endpoints (resumo para apresentação)
 
-2. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
+Base URL: `http://localhost:3000`
 
-3. **Configure as variáveis de ambiente:**
-   - Copie o arquivo `.env.example` para `.env`:
-     ```bash
-     cp .env.example .env
-     ```
-   - Edite o arquivo `.env` com suas configurações (porta, ambiente, etc.)
+- Eventos: `/eventos`
+   - GET `/eventos` — listar (cache aplicado)
+   - GET `/eventos/:id` — detalhe (cache aplicável)
+   - POST `/eventos` — criar
+   - PUT `/eventos/:id` — atualizar
+   - DELETE `/eventos/:id` — deletar
+   - POST `/:id/banner` — upload de banner
 
-4. **Inicie o servidor:**
-   - Para desenvolvimento:
-     ```bash
-     npm run dev
-     ```
-   - Para produção:
-     ```bash
-     npm start
-     ```
+- Participantes: `/participantes`
+   - GET `/participantes` — listar
+   - GET `/participantes/:id` — detalhe
+   - POST `/participantes` — criar (emite `participante:criado`)
+   - PUT `/participantes/:id` — atualizar
+   - DELETE `/participantes/:id` — deletar
 
-5. **Acesse a aplicação:**
-   - **API Base:** [http://localhost:3000](http://localhost:3000)
-   - **Documentação Swagger:** [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+- Inscrições: `/inscricoes`
+   - GET `/inscricoes` — listar
+   - GET `/inscricoes/evento/:eventoId` — listar por evento
+   - POST `/inscricoes` — criar (emite `inscricao:criada`)
+   - PATCH `/inscricoes/:id/cancelar` — cancelar (emite `inscricao:cancelada`)
 
-## 📚 API Endpoints
+- Notificações: `/notificacoes`
+   - GET `/notificacoes` — listar notificações
+   - POST `/notificacoes/teste-email` — envia e-mail de teste via Ethereal
 
-A API possui os seguintes recursos principais:
+- Export: `/exportar` — endpoints para exportar dados (JSON, XML, CSV, relatórios)
 
-### Eventos
+Use a documentação Swagger (`/api-docs`) durante a apresentação para navegar por todos os endpoints e schemas.
 
-- `GET /eventos` - Listar todos os eventos
-- `GET /eventos/:id` - Buscar evento por ID
-- `POST /eventos` - Criar novo evento
-- `PUT /eventos/:id` - Atualizar evento
-- `DELETE /eventos/:id` - Deletar evento
+---
 
-### Participantes
+## Banco de Dados / Models (Sequelize)
 
-- `GET /participantes` - Listar todos os participantes
-- `GET /participantes/:id` - Buscar participante por ID
-- `POST /participantes` - Criar novo participante
-- `PUT /participantes/:id` - Atualizar participante
-- `DELETE /participantes/:id` - Deletar participante
+- SGBD: MySQL
+- Principais models:
+   - `Evento` (id, nome, descricao, data, local, banner, createdAt, updatedAt)
+   - `Participante` (id, nome, email, telefone, createdAt, updatedAt)
+   - `Inscricao` (id, eventoId, participanteId, status, createdAt, updatedAt)
+   - `Notificacao` (id, inscricaoId, tipo, destinatarioEmail, assunto, conteudo, enviada, dataEnvio)
 
-### Inscrições
+Observação: Os models usam `underscored: true` no Sequelize (colunas em snake_case), mas o código acessa campos em camelCase (ex.: `inscricao.id`, `participante.nome`).
 
-- `GET /inscricoes` - Listar todas as inscrições
-- `GET /inscricoes/:id` - Buscar inscrição por ID
-- `POST /inscricoes` - Criar nova inscrição
-- `PUT /inscricoes/:id` - Atualizar inscrição
-- `DELETE /inscricoes/:id` - Deletar inscrição
+---
 
-## 🔐 Variáveis de Ambiente
+## Logging e Monitoramento
 
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+- `logObserver` consolida logs em `logs/app.log` com timestamps e mensagens amigáveis.
+- Durante a apresentação, abra `logs/app.log` para mostrar o histórico de eventos (criação de inscrição, envio de e-mail, erros).
 
-```env
-# Configurações do servidor
-PORT=3000
+---
 
-# Ambiente
-NODE_ENV=development
+## Cache
+
+- Cache aplicado em endpoints de leitura (ex.: listagem de eventos) com TTL curto (30–60s) via `node-cache`.
+- O cache é invalidado em operações que alteram dados (criar/atualizar/deletar) para garantir consistência.
+
+---
+
+## Exportações
+
+- Exporta dados de eventos/inscrições em JSON, XML e CSV.
+- Usado `xmlbuilder2` para conversão a XML e utilitários para CSV.
+
+---
+
+## Tests & Checklist de Apresentação (resumo rápido)
+
+Antes da apresentação, verifique:
+
+1. `npm install` executado e dependências instaladas.
+2. `.env` configurado (porta, credenciais se necessário).
+3. `npm run dev` inicia sem erros e `EmailService.inicializar()` é chamado (ver console: conta Ethereal criada).
+4. Acesse `http://localhost:3000/api-docs` e navegue pelos endpoints.
+5. Demonstre fluxo completo:
+    - Criar participante → veja preview do e-mail de boas-vindas (Ethereal previewUrl no console).
+    - Criar inscrição → ver notificação criada e e-mail de confirmação.
+    - Cancelar inscrição (PATCH `/inscricoes/:id/cancelar`) → verificar que o observer de cancelamento envia e-mail e salva notificação.
+    - Mostrar `logs/app.log` com entradas para cada etapa.
+6. Exportar lista de inscrições em CSV/XML e abrir no editor.
+
+Checklist de comandos para demo:
+
+```powershell
+# Instalar e iniciar
+npm install
+npm run dev
+
+# Testes rápidos (curl/Insomnia/Postman)
+POST http://localhost:3000/participantes  { nome, email }
+POST http://localhost:3000/inscricoes      { eventoId, participanteId }
+PATCH http://localhost:3000/inscricoes/:id/cancelar
+POST http://localhost:3000/notificacoes/teste-email
 ```
 
-## 📖 Documentação Adicional
+---
 
-- [Postman Collection](./docs/postman-collection.json) - Coleção para testes da API
-- [Project Charter](./docs/project-charter.md) - Carta do projeto
-- [Estrutura WBS](./docs/wbs.md) - Work Breakdown Structure
-- [Análise de Riscos](./docs/riscos.md) - Análise de riscos
-- [Funções](./docs/funcoes.md) - Descrição das funções
-- [Infraestrutura](./docs/infraestrutura.md) - Infraestrutura do projeto
-- [Custos](./docs/custos.md) - Análise de custos
+## Como demonstrar (roteiro prático para apresentação)
 
-## 🤝 Contribuição
+1. Abrir `http://localhost:3000/api-docs` e mostrar os schemas.
+2. Criar um participante (POST `/participantes`) — mostrar console com `previewUrl` e abrir no navegador.
+3. Criar um evento e inscrever participante — demonstrar criação de `Notificacao` e e-mail de confirmação.
+4. Cancelar inscrição — executar PATCH `/inscricoes/:id/cancelar` e mostrar e-mail de cancelamento.
+5. Mostrar arquivos: `logs/app.log`, `uploads/` (banners) e `docs/`.
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+Dica: mantenha o terminal visível e copie o `previewUrl` mostrado para abrir o e-mail no navegador ao vivo.
 
-## 📝 Licença
+---
 
-Este projeto está sob a licença ISC.
+## Problemas conhecidos e próximos passos
 
-## 👥 Autores
+- Atualmente, o EmailService está configurado para Ethereal (teste). Para produção, configurar SMTP real (SendGrid, AWS SES, Gmail etc.).
+- Poderíamos adicionar fila de envio (Bull/RabbitMQ) para maior confiabilidade em alta carga.
+- Implementar preferências de notificação por participante.
 
-- **Grupo 5** - Desenvolvimento da API de Notificações
-- **SENAI** - Instituição de ensino
+---
+
+## Contribuição e Contato
+
+1. Fork → branch feature → PR
+2. Testes manuais e revisar `docs/` antes do merge
+
+Autores: Grupo 5 (SENAI)
+
+---
+
+## Licença
+
+ISC
+
+---
+
+Se quiser, eu posso agora:
+
+- (A) Gerar automaticamente um checklist detalhado para a sua apresentação (passo a passo),
+- (B) Inserir no README um roteiro de slides sugerido com trechos de terminal e screenshots,
+- (C) Executar alterações adicionais no projeto para cobrir pontos faltantes que você queira demonstrar.
+
+Diga qual opção prefere e eu continuo.

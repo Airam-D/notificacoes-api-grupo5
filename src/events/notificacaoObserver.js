@@ -34,20 +34,35 @@ appEmitter.on('inscricao:criada', async (inscricao) => {
             eventoLocal: evento.local,
         });
 
+        // Dentro do observer, ANTES de criar a notificação:
+
+        const jaNotificado = await Notificacao.findOne({
+            where: {
+                inscricaoId: inscricao.id,
+                tipo: 'confirmacao',
+                destinatarioEmail: participante.email,
+            }
+        });
+
+        if (jaNotificado) {
+            console.log('[NOTIFICAÇÃO] Confirmação já enviada, ignorando duplicata');
+            return;
+        }
+
         const resultado = await EmailService.enviar(participante.email, assunto, html);
 
         await salvarNotificacao({
-            inscricao_id: inscricao.id,
+            inscricaoId: inscricao.id,
             tipo: 'confirmacao',
-            destinatario_email: participante.email,
+            destinatarioEmail: participante.email,
             assunto,
             conteudo: html,
-            data_envio: new Date(),
+            dataEnvio: new Date(),
             enviada: true,
         });
 
         console.log(`[NOTIFICAÇÃO] Confirmação enviada para ${participante.email}`);
-        console.log(`   Visualizar em: ${resultado.visualizarEm}`);
+        console.log(`   Visualizar em: ${resultado.previewUrl}`);
     } catch (erro) {
         console.error('[NOTIFICAÇÃO] Erro:', erro.message);
     }
@@ -69,17 +84,17 @@ appEmitter.on('inscricao:cancelada', async (inscricao) => {
         const resultado = await EmailService.enviar(participante.email, assunto, html);
 
         await salvarNotificacao({
-            inscricao_id: inscricao.id,
-            tipo: 'confirmacao',
-            destinatario_email: participante.email,
+            inscricaoId: inscricao.id,
+            tipo: 'cancelamento',
+            destinatarioEmail: participante.email,
             assunto,
             conteudo: html,
-            data_envio: new Date(),
+            dataEnvio: new Date(),
             enviada: true,
         });
 
         console.log(`[NOTIFICAÇÃO] Cancelamento enviado para ${participante.email}`);
-        console.log(`   Visualizar em: ${resultado.visualizarEm}`);
+        console.log(`   Visualizar em: ${resultado.previewUrl}`);
     } catch (erro) {
         console.error('[NOTIFICAÇÃO] Erro:', erro.message);
     }

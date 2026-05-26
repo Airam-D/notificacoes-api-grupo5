@@ -10,7 +10,7 @@ const Notificacao = sequelize.define(
             autoIncrement: true,
         },
         tipo: {
-            type: DataTypes.ENUM("confirmacao", "lembrete"),
+            type: DataTypes.ENUM("confirmacao", "lembrete", "cancelamento", "boas_vindas"),
             allowNull: false,
         },
         destinatarioEmail: {
@@ -39,6 +39,11 @@ const Notificacao = sequelize.define(
             allowNull: false,
             defaultValue: false,
 
+        },
+        inscricaoId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            field: 'inscricao_id',
         },
     },
     {

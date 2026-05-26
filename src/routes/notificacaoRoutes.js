@@ -14,9 +14,35 @@ router.get('/', async (req, res, next) => {
                     { model: Participante, as: 'participante', attributes: ['nome', 'email'] },
                 ],
             }],
-            order: [['created_at', 'DESC']],
+            order: [['createdAt', 'DESC']],
         });
         res.json(notificacoes);
+    } catch (erro) {
+        next(erro);
+    }
+});
+
+// GET /notificacoes/estatisticas — dashboard de contagens
+router.get('/estatisticas', async (req, res, next) => {
+    try {
+        const { Notificacao, sequelize } = require('../models');
+
+        const total = await Notificacao.count();
+        const enviadas = await Notificacao.count({ where: { enviada: true } });
+        const naoEnviadas = total - enviadas;
+
+        // Contagem por tipo
+        const porTipoRaw = await Notificacao.findAll({
+            attributes: ['tipo', [sequelize.fn('COUNT', sequelize.col('id')), 'quantidade']],
+            group: ['tipo'],
+        });
+
+        const porTipo = {};
+        porTipoRaw.forEach(r => {
+            porTipo[r.tipo] = parseInt(r.get('quantidade'), 10);
+        });
+
+        res.json({ total, enviadas, naoEnviadas, porTipo });
     } catch (erro) {
         next(erro);
     }
@@ -33,7 +59,7 @@ router.post('/teste-email', async (req, res, next) => {
 
         res.json({
             mensagem: 'E-mail de teste enviado!',
-            visualizarEm: resultado.visualizarEm,
+            previewUrl: resultado.previewUrl,
         });
     } catch (erro) {
         next(erro);

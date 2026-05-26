@@ -49,9 +49,8 @@ app.get("/", (req, res) => {
             exportar: "/exportar",
             uploads: "/uploads",
             notificacoes: "/notificacoes",
-            teste_email: "/notificacoes/teste-email"
-
-        },
+            teste_email: "/notificacoes/teste-email",
+            estatisticas: "/notificacoes/estatisticas"        },
     });
 });
 
