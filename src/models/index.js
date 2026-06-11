@@ -1,7 +1,7 @@
 const sequelize = require("../config/database");
 const Evento = require("./EventoModel");
 const Participante = require("./ParticipanteModel");
-const Inscricao = require("./scricaoModel");
+const Inscricao = require("./InscricaoModel");
 const Notificacao = require("./NotificacaoModel");
 
 // ── Relacionamentos ──
