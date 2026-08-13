@@ -94,3 +94,18 @@ O disparo e reenvio de notificações/e-mails (`EmailService.js` / `POST /notifi
 **RESPOSTA:**
 
 A pasta `src/events/` e alguns middlewares da pasta `src/errors/`. Ainda precisamos mapear exatamente como os disparos de eventos assíncronos internos são acionados pelo `app.js` e como o manipulador de erros global intercepta exceções não tratadas antes de devolver a resposta HTTP.
+
+---
+
+## Parte 5 — Desafio extra (se sobrar tempo)
+
+Olhando o mapa de rotas da Parte 2: qual rota vocês classificariam como a de maior risco e qual como a de menor risco? Justifiquem usando duas dimensões separadas:
+
+### Probabilidade de conter um defeito (é complexa? mexe em muitas tabelas? foi feita às pressas?)
+
+**Resposta:** A rota de maior risco é “/eventos” do método GET, ela é frequentemente usada várias vezes, além de que sua complexibilidade alterna de um arquivo para o outro.
+
+### Impacto se falhar (quantos usuários afeta? Dá para desfazer? perde dado?)
+
+**Resposta:** Se a rota “/inscricoes” método GET falhar, ela afetaria todos os usuários, daria sim para desfazer o erro, e provavelmente aconteceria a perda temporária de alguns dados que estavam sendo inscritos no exato momento.
+"""
