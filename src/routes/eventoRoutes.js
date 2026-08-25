@@ -3,6 +3,59 @@ const router = express.Router();
 const EventoController = require("../controllers/EventoController");
 const upload = require('../config/upload');
 const cacheMiddleware = require('../middlewares/cacheMiddleware');
+const authMiddleware = require("../middlewares/authMiddlewares"); // Caso seja exportação padrão
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Evento:
+ *       type: object
+ *       required:
+ *         - nome
+ *         - data
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: ID gerado automaticamente
+ *         nome:
+ *           type: string
+ *           description: Nome do evento
+ *         descricao:
+ *           type: string
+ *           description: Descrição do evento
+ *         data:
+ *           type: string
+ *           description: Data do evento
+ *         local:
+ *           type: string
+ *           description: Local do evento
+ *         capacidade:
+ *           type: integer
+ *           description: Capacidade máxima
+ *       example:
+ *         id: 1
+ *         nome: Workshop de Node.js
+ *         descricao: Aprenda Node.js do zero
+ *         data: "2025-08-15"
+ *         local: SENAI - Sala 3
+ *         capacidade: 30
+ *     Erro:
+ *       type: object
+ *       properties:
+ *         erro:
+ *           type: object
+ *           properties:
+ *             tipo:
+ *               type: string
+ *               example: NotFoundError
+ *             mensagem:
+ *               type: string
+ *               example: Evento não encontrado(a)
+ *             statusCode:
+ *               type: integer
+ *               example: 404
+ */
 
 /**
  * @swagger
@@ -59,8 +112,19 @@ const cacheMiddleware = require('../middlewares/cacheMiddleware');
  *                 totalPaginas:
  *                   type: integer
  */
+router.get("/", cacheMiddleware(30), EventoController.index);
 
-router.get('/', cacheMiddleware(30), EventoController.index);
+/**
+ * @swagger
+ * /eventos/futuros:
+ *   get:
+ *     summary: Listar eventos futuros
+ *     tags: [Eventos]
+ *     responses:
+ *       200:
+ *         description: Lista de eventos futuros
+ */
+router.get("/futuros", cacheMiddleware(30), EventoController.listarFuturos);
 
 /**
  * @swagger
@@ -89,58 +153,7 @@ router.get('/', cacheMiddleware(30), EventoController.index);
  *             schema:
  *               $ref: '#/components/schemas/Erro'
  */
-router.get('/:id', cacheMiddleware(60), EventoController.show);
-/**
- * @swagger
- * components:
- *   schemas:
- *     Evento:
- *       type: object
- *       required:
- *         - nome
- *         - data
- *       properties:
- *         id:
- *           type: integer
- *           description: ID gerado automaticamente
- *         nome:
- *           type: string
- *           description: Nome do evento
- *         descricao:
- *           type: string
- *           description: Descrição do evento
- *         data:
- *           type: string
- *           description: Data do evento
- *         local:
- *           type: string
- *           description: Local do evento
- *         capacidade:
- *           type: integer
- *           description: Capacidade máxima
- *       example:
- *         id: 1
- *         nome: Workshop de Node.js
- *         descricao: Aprenda Node.js do zero
- *         data: "2025-08-15"
- *         local: SENAI - Sala 3
- *         capacidade: 30
- *     Erro:
- *       type: object
- *       properties:
- *         erro:
- *           type: object
- *           properties:
- *             tipo:
- *               type: string
- *               example: NotFoundError
- *             mensagem:
- *               type: string
- *               example: Evento não encontrado(a)
- *             statusCode:
- *               type: integer
- *               example: 404
- */
+router.get("/:id", cacheMiddleware(60), EventoController.show);
 
 /**
  * @swagger
@@ -148,6 +161,8 @@ router.get('/:id', cacheMiddleware(60), EventoController.show);
  *   post:
  *     summary: Criar um novo evento
  *     tags: [Eventos]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -180,7 +195,75 @@ router.get('/:id', cacheMiddleware(60), EventoController.show);
  *       400:
  *         description: Dados inválidos
  */
-router.post("/", EventoController.store);
+router.post("/", authMiddleware, EventoController.store);
+
+/**
+ * @swagger
+ * /eventos/{id}/banner:
+ *   post:
+ *     summary: Fazer upload do banner do evento
+ *     tags: [Eventos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               banner:
+ *                 type: string
+ *                 format: binary
+ *                 description: Imagem do banner (JPEG, PNG, GIF, WebP — máx 5MB)
+ *     responses:
+ *       200:
+ *         description: Banner atualizado
+ *       400:
+ *         description: Nenhum arquivo enviado ou tipo inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Erro'
+ *       404:
+ *         description: Evento não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Erro'
+ */
+router.post(
+    "/:id/banner",
+    authMiddleware,
+    upload.single("banner"),
+    async (req, res, next) => {
+        try {
+            const { Evento } = require('../models');
+            const evento = await Evento.findByPk(req.params.id);
+
+            if (!evento) {
+                return res.status(404).json({ erro: 'Evento não encontrado' });
+            }
+
+            if (!req.file) {
+                return res.status(400).json({ erro: 'Nenhum arquivo enviado' });
+            }
+
+            await evento.update({ banner: `/uploads/${req.file.filename}` });
+
+            res.json({
+                mensagem: 'Banner atualizado com sucesso',
+                banner: `/uploads/${req.file.filename}`,
+            });
+        } catch (erro) {
+            next(erro);
+        }
+    }
+);
 
 /**
  * @swagger
@@ -222,7 +305,7 @@ router.post("/", EventoController.store);
  *             schema:
  *               $ref: '#/components/schemas/Erro'
  */
-router.put("/:id", EventoController.update);
+router.put("/:id", authMiddleware, EventoController.update);
 
 /**
  * @swagger
@@ -243,70 +326,6 @@ router.put("/:id", EventoController.update);
  *       404:
  *         description: Evento não encontrado
  */
-router.delete("/:id", EventoController.destroy);
-
-/**
- * @swagger
- * /eventos/{id}/banner:
- *   post:
- *     summary: Fazer upload do banner do evento
- *     tags: [Eventos]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               banner:
- *                 type: string
- *                 format: binary
- *                 description: Imagem do banner (JPEG, PNG, GIF, WebP — máx 5MB)
- *     responses:
- *       200:
- *         description: Banner atualizado
- *       400:
- *         description: Nenhum arquivo enviado ou tipo inválido
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Erro'
- *       404:
- *         description: Evento não encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Erro'
- */
-router.post('/:id/banner', upload.single('banner'), async (req, res, next) => {
-    try {
-        const { Evento } = require('../models');
-        const evento = await Evento.findByPk(req.params.id);
-
-        if (!evento) {
-            return res.status(404).json({ erro: 'Evento não encontrado' });
-        }
-
-        if (!req.file) {
-            return res.status(400).json({ erro: 'Nenhum arquivo enviado' });
-        }
-
-        // Salvar o caminho do arquivo no banco
-        await evento.update({ banner: `/uploads/${req.file.filename}` });
-
-        res.json({
-            mensagem: 'Banner atualizado com sucesso',
-            banner: `/uploads/${req.file.filename}`,
-        });
-    } catch (erro) {
-        next(erro);
-    }
-});
+router.delete("/:id", authMiddleware, EventoController.destroy);
 
 module.exports = router;

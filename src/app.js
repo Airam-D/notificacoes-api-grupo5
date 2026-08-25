@@ -25,6 +25,7 @@ const participanteRoutes = require("./routes/participanteRoutes");
 const inscricaoRoutes = require("./routes/inscricaoRoutes");
 const exportRoutes = require('./routes/exportRoutes');
 const notificacaoRoutes = require('./routes/notificacaoRoutes');
+const authRoutes = require("./routes/AuthRoutes");
 const path = require('path');
 
 // Uso de rotas com prefixos
@@ -33,6 +34,7 @@ app.use("/participantes", participanteRoutes);
 app.use("/inscricoes", inscricaoRoutes);
 app.use('/exportar', exportRoutes);
 app.use('/notificacoes', notificacaoRoutes);
+app.use("/auth", authRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Rota raiz (informativa)
@@ -49,7 +51,8 @@ app.get("/", (req, res) => {
             uploads: "/uploads",
             notificacoes: "/notificacoes",
             teste_email: "/notificacoes/teste-email",
-            estatisticas: "/notificacoes/estatisticas"        },
+            estatisticas: "/notificacoes/estatisticas",
+        },
     });
 });
 

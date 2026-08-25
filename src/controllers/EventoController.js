@@ -1,6 +1,19 @@
 const EventoService = require('../services/EventoService');
 const cache = require('../config/cache');
 
+async function listarFuturos(req, res, next) {
+    try {
+        const resultado = await EventoService.listarFuturos({
+            pagina: req.query.pagina,
+            porPagina: req.query.porPagina,
+            // outros filtros se precisar
+        });
+        res.json(resultado);
+    } catch (erro) {
+        next(erro);
+    }
+}
+
 async function index(req, res, next) {
     try {
         const resultado = await EventoService.listarTodos({
@@ -58,4 +71,4 @@ async function destroy(req, res, next) {
     }
 }
 
-module.exports = { index, show, store, update, destroy };
+module.exports = { index, show, store, update, destroy, listarFuturos };
